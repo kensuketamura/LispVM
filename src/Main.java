@@ -32,7 +32,7 @@ public class Main {
 				compiler.compile(parser.getStart(), executer);
 				vm.stackTop = 0;
 				vm.pc = 0;
-				executer.execute(vm, 0);
+				executer.execute(vm, executer.sourceList.get(0));
 			}
 			long e = System.currentTimeMillis();
 			System.out.println(e - s);
@@ -45,7 +45,7 @@ public class Main {
 					compiler.compile(parser.getStart(), executer);
 					vm.stackTop = 0;
 					vm.pc = 0;
-					executer.execute(vm, 0);
+					executer.execute(vm, executer.sourceList.get(0));
 				}
 			}
 		}
