@@ -45,16 +45,16 @@ public class Executer {
 	}
 
 	/**関数ごとにcodeListに分割し、それらのArrayList*/
-	public ArrayList<ArrayList<Code>> sourceList = new ArrayList<ArrayList<Code>>();
+	public ArrayList<Code[]> sourceList = new ArrayList<Code[]>();
 
-	public int execute(VirtualMachine vm, ArrayList<Code> codeList) {
+	public int execute(VirtualMachine vm, Code[] codeList) {
 		int counter, result, number;
 		int arg, arg1, arg2;
-		while (codeList.size() > vm.pc) {
-			if (codeList.get(vm.pc).code == null) {
+		while (codeList.length > vm.pc) {
+			if (codeList[vm.pc].code == null) {
 				return -1;
 			} else {
-				switch (codeList.get(vm.pc).code) {
+				switch (codeList[vm.pc].code) {
 				case RET:
 					result = vm.pop();
 					//スタックの先頭からfuncPointerまでpop
@@ -62,7 +62,7 @@ public class Executer {
 						vm.pop();
 					}
 					vm.funcPointer = vm.pop(); 	//戻り先のfuncPointerに更新
-					vm.pc = vm.pop() - 1; 			//programCounterを戻りアドレスに更新
+					vm.pc = vm.pop() - 1; 		//programCounterを戻りアドレスに更新
 					number = vm.pop(); 			//終了した関数の引数の個数をnumberに代入
 					//終了した関数の引数をすべてpop
 					for (counter = 0; counter < number; counter++) {
@@ -71,7 +71,7 @@ public class Executer {
 					vm.push(result);
 					return 0;
 				case PUSH:
-					vm.push(codeList.get(++vm.pc).value);
+					vm.push(codeList[++vm.pc].value);
 					break;
 				case POP:
 					vm.pop();
@@ -122,11 +122,11 @@ public class Executer {
 					vm.push(arg1 == arg2 ? 1 : 0);
 					break;
 				case CALL:
-					vm.push(vm.pc + 2);						//戻りアドレスをpush
-					vm.push(vm.funcPointer); 				//現在のfuncPointerをpush
-					vm.funcPointer = vm.stackTop; 			//funcPointerを呼び出した関数に更新
-					int source = codeList.get(vm.pc + 1).value; //呼び出す関数のcodeListの識別番号をsourceに代入
-					vm.pc = 0; 								//呼び出す関数のcodeListの先頭にprogramCounterを更新
+					vm.push(vm.pc + 2);							//戻りアドレスをpush
+					vm.push(vm.funcPointer); 					//現在のfuncPointerをpush
+					vm.funcPointer = vm.stackTop; 				//funcPointerを呼び出した関数に更新
+					int source = codeList[vm.pc + 1].value; //呼び出す関数のcodeListの識別番号をsourceに代入
+					vm.pc = 0; 									//呼び出す関数のcodeListの先頭にprogramCounterを更新
 					execute(vm, sourceList.get(source));
 					break;
 
@@ -134,29 +134,29 @@ public class Executer {
 				// 関数の局所  ←[局所n][局所n-1]...[局所1][funcPointer/一階層上のfuncPointer]
 
 				case LOADA:
-					arg = vm.stack[vm.funcPointer - 3 - (vm.stack[vm.funcPointer - 2] - codeList.get(++vm.pc).value)];
+					arg = vm.stack[vm.funcPointer - 3 - (vm.stack[vm.funcPointer - 2] - codeList[++vm.pc].value)];
 					vm.push(arg);
 					break;
 				case LOADL:
-					arg = vm.stack[vm.funcPointer + codeList.get(++vm.pc).value];
+					arg = vm.stack[vm.funcPointer + codeList[++vm.pc].value];
 					vm.push(arg);
 					break;
 				case STOREA:
-					vm.stack[vm.funcPointer - 3 - (vm.stack[vm.funcPointer - 2] - codeList.get(++vm.pc).value)] = vm
+					vm.stack[vm.funcPointer - 3 - (vm.stack[vm.funcPointer - 2] - codeList[++vm.pc].value)] = vm
 							.pop();
 					break;
 				case STOREL:
-					vm.stack[vm.funcPointer + codeList.get(++vm.pc).value] = vm.pop();
+					vm.stack[vm.funcPointer + codeList[++vm.pc].value] = vm.pop();
 					break;
 				case IF:
 					if (vm.pop() != 1) {
-						vm.pc = codeList.get(vm.pc + 1).value - 1;
+						vm.pc = codeList[vm.pc + 1].value - 1;
 					} else {
 						vm.pc++;
 					}
 					break;
 				case JUMP:
-					vm.pc = codeList.get(vm.pc + 1).value - 1;
+					vm.pc = codeList[vm.pc + 1].value - 1;
 					break;
 				case PRINT:
 					System.out.println(vm.stack[vm.stackTop]);

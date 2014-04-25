@@ -2,28 +2,39 @@ import java.util.ArrayList;
 
 public class Compiler {
 	public ArrayList<Code> codeList;
+	public boolean mainCode = true;
 	private Code dammy = new Code(0);
 	private Function currentFunc;
-	public boolean mainCode = true;
-	public ArrayList<Variable> varlist = new ArrayList<Variable>();
-	public ArrayList<Function> funclist = new ArrayList<Function>();
+	private ArrayList<Variable> varlist = new ArrayList<Variable>();
+	private ArrayList<Function> funclist = new ArrayList<Function>();
 
 	public int compile(Cons begin, Executer executer) {
 		ArrayList<Code> newCodeList = new ArrayList<Code>();
+		//main関数か否か
 		if (mainCode) {
-			executer.sourceList.set(0, newCodeList);
 			mainCode = false;
 			reCompile(newCodeList, begin, executer);
-			newCodeList.add(new Code(Executer.command.PRINT));
+			newCodeList.add(new Code(Executer.command.PRINT));		//main関数の最後で結果を出力
+			//長さが確定したArrayListを配列に変換
+			Code[] releaseCodeLsit = new Code[newCodeList.size()];
+			for (int i = 0; i < releaseCodeLsit.length; i++) {
+				releaseCodeLsit[i] = newCodeList.get(i);
+			}
+			executer.sourceList.set(0, releaseCodeLsit);			//main関数はsourceListの"0"番目
 		} else {
-			executer.sourceList.add(newCodeList);
 			reCompile(newCodeList, begin, executer);
 			newCodeList.add(new Code(Executer.command.RET));
+			//長さが確定したArrayListを配列に変換
+			Code[] releaseCodeLsit = new Code[newCodeList.size()];
+			for (int i = 0; i < releaseCodeLsit.length; i++) {
+				releaseCodeLsit[i] = newCodeList.get(i);
+			}
+			executer.sourceList.add(releaseCodeLsit);
 		}
 		return executer.sourceList.size() - 1;
 	}
 
-	public void reCompile(ArrayList<Code> newCodeList, Cons begin, Executer executer) {
+	private void reCompile(ArrayList<Code> newCodeList, Cons begin, Executer executer) {
 		switch (begin.kind) {
 		case OPERATOR:
 			compileOp(newCodeList, begin, executer);
@@ -36,6 +47,7 @@ public class Compiler {
 			compileIf(newCodeList, begin, executer);
 			break;
 		case SETQ:
+			compileSetq(newCodeList, begin, executer);
 			break;
 		case DEFUN:
 			compileDefun(newCodeList, begin, executer);
@@ -49,7 +61,7 @@ public class Compiler {
 		}
 	}
 
-	public void compileOp(ArrayList<Code> newCodeList, Cons token, Executer executer) {
+	private void compileOp(ArrayList<Code> newCodeList, Cons token, Executer executer) {
 		Cons current = token.cdr;
 		while (current != null) {
 			if (current.kind == Cons.ConsIdentifier.NODE) {
@@ -93,7 +105,7 @@ public class Compiler {
 		}
 	}
 
-	public void compileIf(ArrayList<Code> newCodeList, Cons token, Executer executer) {
+	private void compileIf(ArrayList<Code> newCodeList, Cons token, Executer executer) {
 		int falseNum, exitNum;
 		compileOp(newCodeList, token.cdr.car, executer);	//条件文をコンパイル
 		newCodeList.add(new Code(Executer.command.IF));		//IFを追加
@@ -108,11 +120,15 @@ public class Compiler {
 		newCodeList.set(exitNum, new Code(newCodeList.size()));
 	}
 
-	public void compileSetq(ArrayList<Code> newCodeList, Cons token) {
-
+	private void compileSetq(ArrayList<Code> newCodeList, Cons token, Executer executer) {
+		if (currentFunc == null) {
+			varlist.add(new Variable(token.cdr.getValue(), varlist.size() + 1));
+		} else {
+			currentFunc.localvar.add(new Variable(token.cdr.getValue(), currentFunc.localvar.size() + 1));
+		}
 	}
 
-	public void compileDefun(ArrayList<Code> newCodeList, Cons token, Executer executer) {
+	private void compileDefun(ArrayList<Code> newCodeList, Cons token, Executer executer) {
 		int count = 0;
 		Cons varToken = token;
 		Function newFunc = new Function(token.cdr.getValue());
@@ -127,7 +143,7 @@ public class Compiler {
 		newFunc.number = compile(token.cdr.cdr.cdr.car, executer);
 	}
 
-	public void compileName(ArrayList<Code> newCodeList, Cons token, Executer executer) {
+	private void compileName(ArrayList<Code> newCodeList, Cons token, Executer executer) {
 		int func_i = 0, var_i = 0;
 		Cons currentToken = token.cdr;
 		boolean finish = false;

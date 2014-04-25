@@ -28,13 +28,6 @@ public class VirtualMachine {
 	public int pop() {
 		int value = stack[stackTop];
 		--stackTop;
-		//		if (--stackTop < stack.length - 500 && stack.length >= 1500) {
-		//			int[] copy = new int[stack.length - 500];
-		//			for (int i = 0; i < copy.length; i++) {
-		//				copy[i] = stack[i];
-		//			}
-		//			stack = copy;
-		//		}
 		return value;
 	}
 }
