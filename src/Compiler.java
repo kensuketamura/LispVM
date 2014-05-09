@@ -110,17 +110,19 @@ public class Compiler {
 		compileOp(newCodeList, token.cdr.car, executer);	//条件文をコンパイル
 		newCodeList.add(new Code(Executer.command.IF));		//IFを追加
 		newCodeList.add(dammy);
-		falseNum = newCodeList.size() - 1;						//faulse文の先頭番号を保持するCode(確定後に代入
+		falseNum = newCodeList.size() - 1;					//faulse文の先頭番号を保持するCode(確定後に代入
 		reCompile(newCodeList, token.cdr.cdr, executer);	//true文をコンパイル
-		newCodeList.add(new Code(Executer.command.JUMP));		//true文の最後にJUMPを追加
+		newCodeList.add(new Code(Executer.command.JUMP));	//true文の最後にJUMPを追加
 		newCodeList.add(dammy);
-		exitNum = newCodeList.size() - 1;						//if文の終了番号を保持するCode(確定後に代入
+		exitNum = newCodeList.size() - 1;					//if文の終了番号を保持するCode(確定後に代入
 		newCodeList.set(falseNum, new Code(newCodeList.size()));
 		reCompile(newCodeList, token.cdr.cdr.cdr, executer);//false文をコンパイル
 		newCodeList.set(exitNum, new Code(newCodeList.size()));
 	}
 
 	private void compileSetq(ArrayList<Code> newCodeList, Cons token, Executer executer) {
+		if (token.cdr.car == null) {
+		}
 		if (currentFunc == null) {
 			varlist.add(new Variable(token.cdr.getValue(), varlist.size() + 1));
 		} else {
