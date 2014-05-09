@@ -50,6 +50,7 @@ public class Executer {
 	public int execute(VirtualMachine vm, Code[] codeList) {
 		int counter, result, number;
 		int arg, arg1, arg2;
+		int source = 0;
 		while (codeList.length > vm.pc) {
 			if (codeList[vm.pc].code == null) {
 				return -1;
@@ -58,16 +59,13 @@ public class Executer {
 				case RET:
 					result = vm.pop();
 					//スタックの先頭からfuncPointerまでpop
-					for (counter = vm.stackTop; counter > vm.funcPointer; counter--) {
-						vm.pop();
-					}
+					counter = vm.stackTop - vm.funcPointer;
+					vm.stackTop -= counter;
 					vm.funcPointer = vm.pop(); 	//戻り先のfuncPointerに更新
 					vm.pc = vm.pop() - 1; 		//programCounterを戻りアドレスに更新
 					number = vm.pop(); 			//終了した関数の引数の個数をnumberに代入
 					//終了した関数の引数をすべてpop
-					for (counter = 0; counter < number; counter++) {
-						vm.pop();
-					}
+					vm.stackTop -= number;
 					vm.push(result);
 					return 0;
 				case PUSH:
@@ -125,7 +123,7 @@ public class Executer {
 					vm.push(vm.pc + 2);							//戻りアドレスをpush
 					vm.push(vm.funcPointer); 					//現在のfuncPointerをpush
 					vm.funcPointer = vm.stackTop; 				//funcPointerを呼び出した関数に更新
-					int source = codeList[vm.pc + 1].value; //呼び出す関数のcodeListの識別番号をsourceに代入
+					source = codeList[vm.pc + 1].value; //呼び出す関数のcodeListの識別番号をsourceに代入
 					vm.pc = 0; 									//呼び出す関数のcodeListの先頭にprogramCounterを更新
 					execute(vm, sourceList.get(source));
 					break;
